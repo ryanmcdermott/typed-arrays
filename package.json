@@ -17,7 +17,9 @@
   "homepage": "https://github.com/ryanmcdermott/typed-arrays",
   "dependencies": {
     "benchmark": "2.1.1",
+    "classnames": "^2.2.5",
     "lodash": "4.15.0",
+    "microtime": "^2.1.1",
     "node-sass": "^3.8.0",
     "react": "15.3.0",
     "react-dom": "15.3.0",
