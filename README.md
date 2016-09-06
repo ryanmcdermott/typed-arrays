@@ -2,7 +2,7 @@
 ### Development
 
 ```
-git clone  
+git clone https://github.com/ryanmcdermott/typed-arrays.git
 npm install
 npm start
 ```
