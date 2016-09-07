@@ -5,6 +5,23 @@ import classNames from 'classnames/bind';
 
 let cx = classNames.bind(styles);
 
+let submitClass = cx({
+  twelve: true,
+  columns: true,
+  center: true,
+  'run-experiment': true
+});
+
+let compareColumn = cx({
+  six: true,
+  columns: true,
+  center: true
+});
+
+let titleClass = cx({
+  center: true
+});
+
 class App extends React.Component {
   constructor() {
     super();
@@ -77,22 +94,26 @@ class App extends React.Component {
   }
 
   normalArraySort() {
-    normalArr = normalArr.sort((a, b) => {
+    this.normalArr = normalArr.sort((a, b) => {
       return a > b;
     });
   }
 
   typedArraySort() {
-    typedArr.sort();
+    this.typedArr.sort();
   }
 
   runExperiment() {
-    var normalArr = generateRandomArray(this.state.count, this.types[this.state.type].min, this.types[this.state.type].max);
-    var typedArr = new this.types[this.state.type].fn(normalArr);
+    this.normalArr = generateRandomArray(this.state.count, this.types[this.state.type].min, this.types[this.state.type].max);
+    this.typedArr = new this.types[this.state.type].fn(normalArr);
 
-    var suite = new Benchmark.Suite;
+    if (this.suite) {
+      this.suite.abort();
+    }
 
-    suite.add('normalArray', function() {
+    this.suite = new Benchmark.Suite;
+
+    this.suite.add('normalArray', function() {
       normalArraySort();
     })
     .add('typedArray', function() {
@@ -110,12 +131,12 @@ class App extends React.Component {
     return (
       <div className="container">
         <div className="row">
-          <h2 className="center">JavaScript TypedArray Performance</h2>
+          <h2 className={titleClass}>JavaScript TypedArray Performance</h2>
         </div>
         <div className="row">
           <form>
             <div className="four columns">
-              <label htmlFor="countInput">Number of Array Elements</label>
+              <label htmlFor="countInput"># of Random Array Elements</label>
               <input className="u-full-width" type="number" min="1" value={this.state.count} id="countInput"/>
             </div>
             <div className="four columns">
@@ -145,15 +166,15 @@ class App extends React.Component {
         </div>
         <hr/>
         <div className="row">
-          <div className="six columns {styles.center}">
+          <div className={compareColumn}>
             <h3>TypedArray</h3>
             Press submit to see results...
           </div>
-          <div className="six columns {styles.center}">
+          <div className={compareColumn}>
             <h3>Normal Array</h3>
             Press submit to see results...
           </div>
-          <div className="twelve columns {styles.center} {styles.runExperiment}">
+          <div className={submitClass}>
             <input className="button-primary" type="submit" value="Submit"/>
           </div>
         </div>
