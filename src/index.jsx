@@ -73,11 +73,53 @@ class App extends React.Component {
       }
     };
 
+    this.methods = {
+      sort: {
+        typed: this.typedArraySort,
+        normal: this.normalArraySort
+      }
+    };
+
     this.state = {
       type: 'Int32Array',
-      method: 'read',
-      count: 10000
+      method: 'sort',
+      count: 10000,
+      running: false,
+      results: {
+        typed: null,
+        normal: null
+      }
     };
+  }
+
+  onSelectMethod(e) { 
+    this.abortExperiment();
+
+    this.setState({
+      method: e.target.value
+    });
+  }
+
+  onSelectType(e) {
+    this.abortExperiment();
+
+    this.setState({
+      type: e.target.value
+    });
+  }
+
+  onSetCount(e) {
+    this.abortExperiment();
+
+    this.setState({
+      count: e.target.value
+    });
+  }
+
+  abortExperiment() {
+    if (this.suite) {
+      this.suite.abort();
+    }
   }
 
   getRandomInt(min, max) {
@@ -104,20 +146,18 @@ class App extends React.Component {
   }
 
   runExperiment() {
-    this.normalArr = generateRandomArray(this.state.count, this.types[this.state.type].min, this.types[this.state.type].max);
-    this.typedArr = new this.types[this.state.type].fn(normalArr);
+    this.normalArr = this.generateRandomArray(this.state.count, this.types[this.state.type].min, this.types[this.state.type].max);
+    this.typedArr = new this.types[this.state.type].fn(this.normalArr);
 
-    if (this.suite) {
-      this.suite.abort();
-    }
+    this.abortExperiment();
 
     this.suite = new Benchmark.Suite;
 
-    this.suite.add('normalArray', function() {
-      normalArraySort();
+    this.suite.add('normalArray', () => {
+      this.methods[this.state.method].normal(); 
     })
-    .add('typedArray', function() {
-      typedArraySort();
+    .add('typedArray', () => {
+      this.methods[this.state.method].typed(); 
     })
     .on('cycle', function(event) {
       console.log(String(event.target));
@@ -126,7 +166,12 @@ class App extends React.Component {
       console.log('Fastest is ' + this.filter('fastest').map('name'));
     })
     .run({ 'async': true });
+
+    this.setState({
+      running: true
+    });
   }
+
   render() {
     return (
       <div className="container">
@@ -137,11 +182,20 @@ class App extends React.Component {
           <form>
             <div className="four columns">
               <label htmlFor="countInput"># of Random Array Elements</label>
-              <input className="u-full-width" type="number" min="1" value={this.state.count} id="countInput"/>
+              <input className="u-full-width" 
+                type="number" 
+                min="1" 
+                max="1000000"
+                value={this.state.count} 
+                onChange={this.onSetCount.bind(this)}
+                id="countInput"/>
             </div>
             <div className="four columns">
               <label htmlFor="arraySelector">TypedArray</label>
-              <select className="u-full-width" id="typeSelector" value={this.state.type}>
+              <select className="u-full-width" 
+                id="typeSelector" 
+                onChange={this.onSelectType.bind(this)}
+                value={this.state.type}>
                 <option value="Int8Array">Int8Array</option>
                 <option value="Uint8Array">Uint8Array</option>
                 <option value="Uint8ClampedArray">Uint8ClampedArray</option>
@@ -155,7 +209,9 @@ class App extends React.Component {
             </div>
             <div className="four columns">
               <label htmlFor="arraySelector">Method</label>
-              <select className="u-full-width" id="methodSelector" value={this.state.method}>
+              <select className="u-full-width" id="methodSelector" 
+                onChange={this.onSelectMethod.bind(this)} 
+                value={this.state.method}>
                 <option value="sort">Sorting</option>
                 <option value="read">Reading</option>
                 <option value="write">Writing</option>
@@ -167,15 +223,15 @@ class App extends React.Component {
         <hr/>
         <div className="row">
           <div className={compareColumn}>
-            <h3>TypedArray</h3>
-            Press submit to see results...
+            <h3>{this.state.type}</h3>
+            {this.state.running ? "Running" : "Press submit to see results..." }
           </div>
           <div className={compareColumn}>
             <h3>Normal Array</h3>
-            Press submit to see results...
+            {this.state.running ? "Running" : "Press submit to see results..." }
           </div>
           <div className={submitClass}>
-            <input className="button-primary" type="submit" value="Submit"/>
+            <input className="button-primary" onClick={this.runExperiment.bind(this)} type="submit" value="Submit"/>
           </div>
         </div>
       </div>
