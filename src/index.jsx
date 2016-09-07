@@ -83,7 +83,7 @@ class App extends React.Component {
     this.state = {
       type: 'Int32Array',
       method: 'sort',
-      count: 10000,
+      count: 100000,
       running: false,
       results: {
         typed: null,
@@ -120,6 +120,10 @@ class App extends React.Component {
     if (this.suite) {
       this.suite.abort();
     }
+
+    this.setState({
+      running: false
+    });
   }
 
   getRandomInt(min, max) {
@@ -136,7 +140,7 @@ class App extends React.Component {
   }
 
   normalArraySort() {
-    this.normalArr = normalArr.sort((a, b) => {
+    this.normalArr = this.normalArr.sort((a, b) => {
       return a > b;
     });
   }
@@ -154,10 +158,10 @@ class App extends React.Component {
     this.suite = new Benchmark.Suite;
 
     this.suite.add('normalArray', () => {
-      this.methods[this.state.method].normal(); 
+      this.methods[this.state.method].normal.call(this); 
     })
     .add('typedArray', () => {
-      this.methods[this.state.method].typed(); 
+      this.methods[this.state.method].typed.call(this); 
     })
     .on('cycle', function(event) {
       console.log(String(event.target));
