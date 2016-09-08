@@ -75,16 +75,16 @@ class App extends React.Component {
 
     this.methods = {
       sort: {
-        typed: this.typedArraySort,
-        normal: this.normalArraySort
+        fn: this.sort
       },
       read: {
-        typed: this.typedArrayRead,
-        normal: this.normalArrayRead
+        fn: this.read
       },
       clone: {
-        typed: this.typedArrayCloning,
-        normal: this.normalArrayCloning
+        fn: this.clone
+      },
+      write: {
+        fn: this.write
       }
     };
 
@@ -147,32 +147,22 @@ class App extends React.Component {
     return randArray;
   }
 
-  normalArraySort() {
-    this.normalArr.sort((a, b) => {
+  sort(arr) {
+    arr.sort((a, b) => {
       return a > b;
     });
   }
 
-  typedArraySort() {
-    this.typedArr.sort((a, b) => {
-      return a > b;
-    });
+  clone(arr) {
+    arr.slice();
   }
 
-  normalArrayCloning() {
-    this.normalArr.slice();
+  read(arr) {
+    var read = arr[this.state.count / 2];
   }
 
-  typedArrayCloning() {
-    this.typedArr.slice();
-  }
+  write(arr) {
 
-  normalArrayRead() {
-    var read = this.normalArr[this.state.count / 2];
-  }
-
-  typedArrayRead() {
-    var read = this.typedArr[this.state.count / 2];
   }
 
   runExperiment() {
@@ -184,10 +174,10 @@ class App extends React.Component {
     this.suite = new Benchmark.Suite;
 
     this.suite.add('normalArray', () => {
-      this.methods[this.state.method].normal.call(this); 
+      this.methods[this.state.method].fn.call(this, this.normalArr); 
     })
     .add('typedArray', () => {
-      this.methods[this.state.method].typed.call(this); 
+      this.methods[this.state.method].fn.call(this, this.typedArr); 
     })
     .on('cycle', function(event) {
       console.log(String(event.target));
