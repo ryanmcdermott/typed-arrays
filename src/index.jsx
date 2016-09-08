@@ -77,6 +77,14 @@ class App extends React.Component {
       sort: {
         typed: this.typedArraySort,
         normal: this.normalArraySort
+      },
+      read: {
+        typed: this.typedArrayRead,
+        normal: this.normalArrayRead
+      },
+      clone: {
+        typed: this.typedArrayCloning,
+        normal: this.normalArrayCloning
       }
     };
 
@@ -140,13 +148,31 @@ class App extends React.Component {
   }
 
   normalArraySort() {
-    this.normalArr = this.normalArr.sort((a, b) => {
+    this.normalArr.sort((a, b) => {
       return a > b;
     });
   }
 
   typedArraySort() {
-    this.typedArr.sort();
+    this.typedArr.sort((a, b) => {
+      return a > b;
+    });
+  }
+
+  normalArrayCloning() {
+    this.normalArr.slice();
+  }
+
+  typedArrayCloning() {
+    this.typedArr.slice();
+  }
+
+  normalArrayRead() {
+    var read = this.normalArr[this.state.count / 2];
+  }
+
+  typedArrayRead() {
+    var read = this.typedArr[this.state.count / 2];
   }
 
   runExperiment() {
