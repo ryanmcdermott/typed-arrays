@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import styles from './index.scss';
 import classNames from 'classnames/bind';
+import Spinner from './spinner';
 
 let cx = classNames.bind(styles);
 
@@ -49,7 +50,7 @@ class App extends React.Component {
       'Uint16Array': {
         fn: Uint16Array,
         max: Math.pow(2, 16) - 1,
-        min: 0 
+        min: 0
       },
       'Int32Array': {
         fn: Int32Array,
@@ -59,7 +60,7 @@ class App extends React.Component {
       'Uint32Array': {
         fn: Uint32Array,
         max: Math.pow(2, 32) - 1,
-        min: 0 
+        min: 0
       },
       'Float32Array': {
         fn: Float32Array,
@@ -100,7 +101,7 @@ class App extends React.Component {
     };
   }
 
-  onSelectMethod(e) { 
+  onSelectMethod(e) {
     this.abortExperiment();
 
     this.setState({
@@ -162,10 +163,19 @@ class App extends React.Component {
   }
 
   write(arr) {
-
+    // Hack because TypedArrays disobey LSP and do not implement the Array interface methods
+    if (arr instanceof Array) {
+      arr.push(1);
+    }
+    else {
+      arr.set([1], arr.length - 1);
+    }
   }
 
-  runExperiment() {
+  runExperiment(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
     this.normalArr = this.generateRandomArray(this.state.count, this.types[this.state.type].min, this.types[this.state.type].max);
     this.typedArr = new this.types[this.state.type].fn(this.normalArr);
 
@@ -173,17 +183,19 @@ class App extends React.Component {
 
     this.suite = new Benchmark.Suite;
 
-    this.suite.add('normalArray', () => {
-      this.methods[this.state.method].fn.call(this, this.normalArr); 
+    this.suite.add('normal', () => {
+      this.methods[this.state.method].fn.call(this, this.normalArr);
     })
-    .add('typedArray', () => {
-      this.methods[this.state.method].fn.call(this, this.typedArr); 
+    .add('typed', () => {
+      this.methods[this.state.method].fn.call(this, this.typedArr);
     })
-    .on('cycle', function(event) {
+    .on('cycle', (event) => {
       console.log(String(event.target));
     })
-    .on('complete', function() {
-      console.log('Fastest is ' + this.filter('fastest').map('name'));
+    .on('complete', () => {
+      this.setState({
+        running: false
+      });
     })
     .run({ 'async': true });
 
@@ -198,22 +210,22 @@ class App extends React.Component {
         <div className="row">
           <h2 className={titleClass}>JavaScript TypedArray Performance</h2>
         </div>
-        <div className="row">
-          <form>
+        <form>
+         <div className="row">
             <div className="four columns">
               <label htmlFor="countInput"># of Random Array Elements</label>
-              <input className="u-full-width" 
-                type="number" 
-                min="1" 
+              <input className="u-full-width"
+                type="number"
+                min="1"
                 max="1000000"
-                value={this.state.count} 
+                value={this.state.count}
                 onChange={this.onSetCount.bind(this)}
                 id="countInput"/>
             </div>
             <div className="four columns">
               <label htmlFor="arraySelector">TypedArray</label>
-              <select className="u-full-width" 
-                id="typeSelector" 
+              <select className="u-full-width"
+                id="typeSelector"
                 onChange={this.onSelectType.bind(this)}
                 value={this.state.type}>
                 <option value="Int8Array">Int8Array</option>
@@ -229,8 +241,8 @@ class App extends React.Component {
             </div>
             <div className="four columns">
               <label htmlFor="arraySelector">Method</label>
-              <select className="u-full-width" id="methodSelector" 
-                onChange={this.onSelectMethod.bind(this)} 
+              <select className="u-full-width" id="methodSelector"
+                onChange={this.onSelectMethod.bind(this)}
                 value={this.state.method}>
                 <option value="sort">Sorting</option>
                 <option value="read">Reading</option>
@@ -238,28 +250,26 @@ class App extends React.Component {
                 <option value="clone">Cloning</option>
               </select>
             </div>
-          </form>
-        </div>
-        <hr/>
-        <div className="row">
-          <div className={compareColumn}>
-            <h3>{this.state.type}</h3>
-            {this.state.running ? "Running" : "Press submit to see results..." }
           </div>
-          <div className={compareColumn}>
-            <h3>Normal Array</h3>
-            {this.state.running ? "Running" : "Press submit to see results..." }
+          <hr/>
+          <div className="row">
+            <div className={compareColumn}>
+              <h3>{this.state.type}</h3>
+              {this.state.running ? <Spinner/> : "Press submit to see results..." }
+            </div>
+            <div className={compareColumn}>
+              <h3>Normal Array</h3>
+              {this.state.running ? <Spinner/> : "Press submit to see results..." }
+
+            </div>
+            <div className={submitClass}>
+              <input className="button-primary" onClick={this.runExperiment.bind(this)} type="submit" value="Submit"/>
+            </div>
           </div>
-          <div className={submitClass}>
-            <input className="button-primary" onClick={this.runExperiment.bind(this)} type="submit" value="Submit"/>
-          </div>
-        </div>
+        </form>
       </div>
     )
   }
 }
 
-
 render(<App/>, document.querySelector("#app"));
-
-
